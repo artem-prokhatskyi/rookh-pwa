@@ -1,5 +1,5 @@
 /* Офлайн-оболонка: precache + stale-while-revalidate. */
-const CACHE = 'rookh-v3';
+const CACHE = 'rookh-v4';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './css/app.css?v=3', './css/app.css',
@@ -14,7 +14,10 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(ASSETS.map(a => c.add(a)))).then(() => self.skipWaiting()));
+  // cache: 'reload' — обходимо HTTP-кеш браузера (GitHub Pages віддає max-age=600)
+  e.waitUntil(caches.open(CACHE)
+    .then(c => Promise.allSettled(ASSETS.map(a => c.add(new Request(a, { cache: 'reload' })))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -29,14 +32,15 @@ self.addEventListener('fetch', e => {
 
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).then(r => { caches.open(CACHE).then(c => c.put('./index.html', r.clone())); return r; })
+      fetch(new Request(req.url, { cache: 'no-cache' }))
+        .then(r => { caches.open(CACHE).then(c => c.put('./index.html', r.clone())); return r; })
         .catch(() => caches.match('./index.html').then(r => r || caches.match('./')))
     );
     return;
   }
   e.respondWith(
     caches.match(req).then(cached => {
-      const net = fetch(req).then(r => {
+      const net = fetch(new Request(req.url, { cache: 'no-cache' })).then(r => {
         if (r && r.status === 200) caches.open(CACHE).then(c => c.put(req, r.clone()));
         return r;
       }).catch(() => cached || new Response('', { status: 504, statusText: 'offline' }));
