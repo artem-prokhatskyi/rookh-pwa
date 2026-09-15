@@ -6,13 +6,13 @@ import {
 import {
   settings, ui, habits, timer, newHabit, cloneHabit, findHabit, visibleHabits,
   addHabit, replaceHabit, deleteHabit, pushLog, saveLog, reindexAndSave, saveHabit,
-  saveSettings, saveTimer, saveOrder, indexHabit, bump,
+  saveSettings, saveTimer, saveOrder, indexHabit, bump, saveHabitsBulk, saveLogsBulk,
 } from './state.js';
 import {
   TODAY, progress, rowState, activeLogs, logsOn, isScheduled, isPausedOn, inWindow,
   intervalState, canRetro, errors, isComplexGoal, timerElapsedMin, habitSentence,
 } from './engine.js';
-import { RECIPES, applyRecipe, nextColor, guessIcon, buildDemo } from './recipes.js';
+import { RECIPES, applyRecipe, nextColor, guessIcon, buildDemo, DEMO_SIZE, DEMO_PHOTO_HABIT } from './recipes.js';
 import { render } from './render/index.js';
 import { toast, pushSheet, closeSheet, topSheet, dropSheets, menu, haptic, clearToast } from './ui.js';
 import { savePhoto, deletePhoto } from './photos.js';
@@ -184,6 +184,55 @@ function archiveHabit(h) {
   ui.sheets = []; ui.editor = null; ui.stack = [];
   syncReminders();
   toast(`«${h.name}» в архіві`, { label: 'Повернути', fn: () => { h.archived = false; saveHabit(h); render(); } });
+}
+
+/* демо-фото: градієнт із датою, щоб сценарій «прогрес форми» був повним */
+async function makeDemoPhoto(i, dateKey) {
+  try {
+    const c = document.createElement('canvas');
+    c.width = 720; c.height = 960;
+    const x = c.getContext('2d');
+    const pair = [['#3E9B6C', '#2A9C93'], ['#4F6D8F', '#7561C9'], ['#D4A012', '#E8782B'], ['#8D7A5E', '#5F6B78']][i % 4];
+    const g = x.createLinearGradient(0, 0, 720, 960);
+    g.addColorStop(0, pair[0]); g.addColorStop(1, pair[1]);
+    x.fillStyle = g; x.fillRect(0, 0, 720, 960);
+    x.fillStyle = 'rgba(255,255,255,.88)';
+    x.textAlign = 'center';
+    x.font = '600 46px -apple-system, Helvetica, sans-serif';
+    x.fillText('демо-фото', 360, 470);
+    x.font = '400 30px -apple-system, Helvetica, sans-serif';
+    x.fillText(fmtDate(dateKey), 360, 520);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+    return blob ? await savePhoto(new File([blob], 'demo.jpg', { type: 'image/jpeg' })) : null;
+  } catch (e) { console.warn('[rookh] демо-фото', e); return null; }
+}
+
+async function loadDemoData() {
+  toast('Готую демо-дані…', null, 120000);
+  await new Promise(r => setTimeout(r, 30));
+  const demo = buildDemo();
+  const base = habits.length;
+  demo.forEach((h, i) => { h.order = base + i; indexHabit(h); habits.push(h); });
+  saveHabitsBulk(demo);
+  const allLogs = demo.flatMap(h => h.logs);
+  saveLogsBulk(allLogs);
+  bump();
+  render();
+
+  const ph = demo.find(h => h.name === DEMO_PHOTO_HABIT);
+  if (ph) {
+    const recent = ph.logs.slice(-8);
+    for (let i = 0; i < recent.length; i++) {
+      const id = await makeDemoPhoto(i, recent[i].date);
+      if (id) recent[i].photoId = id;
+    }
+    saveLogsBulk(recent);
+    bump();
+  }
+  syncReminders();
+  clearToast();
+  toast(`Додано ${demo.length} ${plural(demo.length, P.zvychka)} і ${fmtN(allLogs.length)} ${plural(allLogs.length, P.zapys)}`);
+  render();
 }
 
 async function pickImage() {
@@ -565,15 +614,8 @@ export const ACT = {
   exportCsv: () => exportCsv(),
   exportBackup: () => exportBackup(),
   importBackup: () => importBackupFlow(),
-  loadDemo: () => menu('Додати 8 демо-звичок з історією за 84 дні?', [
-    {
-      label: 'Додати', fn: () => {
-        const demo = buildDemo();
-        demo.forEach(h => { h.order = habits.length; indexHabit(h); habits.push(h); saveHabit(h); h.logs.forEach(l => saveLog(h, l)); });
-        bump(); syncReminders();
-        toast(`Додано ${demo.length} ${plural(demo.length, P.zvychka)}`);
-      },
-    },
+  loadDemo: () => menu(`Додати ${DEMO_SIZE.habits} демо-звичок з історією до року? Вони покривають усі сценарії маніфесту.`, [
+    { label: 'Додати', fn: () => loadDemoData() },
   ]),
   showOnboarding: () => { ui.onboarding = 1; ui.sheets = []; ui.stack = []; render(); },
   wipeAll: () => menu('Стерти всі звички, записи й налаштування? Це незворотно.', [

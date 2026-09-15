@@ -3,7 +3,7 @@ import { esc, plural, P, fmtHM } from '../util.js';
 import { settings, ui, habits } from '../state.js';
 import { activeLogs } from '../engine.js';
 import { topdeco, hcolor, ringStyle } from './common.js';
-import { RECIPES } from '../recipes.js';
+import { RECIPES, DEMO_SIZE } from '../recipes.js';
 import { BUILD } from '../build.js';
 
 const toggleRow = (label, key) => `<button class="setrow" data-act="toggleSetting" data-key="${key}"><span class="l">${label}</span><span class="toggle ${settings[key] ? 'on' : ''}"></span></button>`;
@@ -48,7 +48,7 @@ export function renderSettings() {
   </div><div class="hint">Усі дані зберігаються лише в цьому браузері (IndexedDB). Бекап — єдиний спосіб перенести їх.</div>
 
   <div class="sect"><span>Прототип</span></div><div class="card">
-    <button class="setrow" data-act="loadDemo"><span class="l">Додати демо-дані</span><span class="v faint">8 звичок, 84 дні</span><span class="chev">›</span></button>
+    <button class="setrow" data-act="loadDemo"><span class="l">Додати демо-дані</span><span class="v faint">${DEMO_SIZE.habits} звички, до року</span><span class="chev">›</span></button>
     <button class="setrow" data-act="showOnboarding"><span class="l">Показати онбординг</span><span class="chev">›</span></button>
     <button class="setrow danger" data-act="wipeAll"><span class="l">Стерти всі дані</span><span class="chev">›</span></button>
   </div>

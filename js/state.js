@@ -1,5 +1,5 @@
 /* Стан додатка в памʼяті + наскрізний запис у IndexedDB. */
-import { dbGetAll, dbPut, dbDelete, dbDeleteMany, kvGet, kvSet, persist } from './db.js';
+import { dbGetAll, dbPut, dbDelete, dbDeleteMany, dbPutMany, kvGet, kvSet, persist } from './db.js';
 import { setH12, uid, dkey } from './util.js';
 
 export const DEFAULT_SETTINGS = {
@@ -156,6 +156,18 @@ export function reindexAndSave(h, log) {
   indexHabit(h);
   saveLog(h, log);
 }
+/* масовий запис — одна транзакція замість тисяч (демо-дані, імпорт) */
+export function saveHabitsBulk(list) {
+  const copies = list.map(h => JSON.parse(JSON.stringify(stripHabit(h))));
+  persist(() => dbPutMany('habits', copies));
+  bump();
+}
+export function saveLogsBulk(logs) {
+  const copies = logs.map(l => ({ ...l }));
+  persist(() => dbPutMany('logs', copies));
+  bump();
+}
+
 export function saveOrder() {
   habits.forEach((h, i) => { h.order = i; });
   const copies = habits.map(h => JSON.parse(JSON.stringify(stripHabit(h))));
