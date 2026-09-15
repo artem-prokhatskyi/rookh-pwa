@@ -57,7 +57,7 @@ const H = await import('./js/render/habit.js'), T = await import('./js/render/to
 const E = await import('./js/render/editor.js'), SH = await import('./js/render/sheets.js'), R = await import('./js/render/index.js');
 const made = [], errs = [], t = (n,f) => { try { f(); } catch(e) { errs.push(n+' :: '+e.message); } };
 let n = 0;
-for (const kind of ['min','max','none']) for (const period of ['day','week','month','everyN','interval']) for (const type of ['check','qty','time']) {
+for (const kind of ['min','exact','max','none']) for (const period of ['day','week','month','everyN','interval']) for (const type of ['check','qty','time']) {
   if (period === 'interval' && (type !== 'check' || kind !== 'min')) continue;
   const h = s.newHabit({
     name:`T${n++} ${kind}/${period}/${type}`, type, unit: type==='qty'?'мл':'', presets: type==='check'?[]:[10,25],

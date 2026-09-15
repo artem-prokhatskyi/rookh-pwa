@@ -454,7 +454,7 @@ export const ACT = {
     switch (e.pop) {
       case 'kind':
         g.kind = d.v;
-        if (d.v === 'max' && g.n < 1) g.n = 1;
+        if ((d.v === 'max' || d.v === 'exact') && g.n < 1) g.n = 1;
         if (d.v === 'none') g.second = null;
         if (d.v !== 'min' && g.period === 'interval') g.period = 'day';
         break;

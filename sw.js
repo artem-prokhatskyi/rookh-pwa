@@ -1,9 +1,9 @@
 /* Офлайн-оболонка: precache + stale-while-revalidate. */
-const CACHE = 'rookh-v5';
+const CACHE = 'rookh-v6';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
-  './css/app.css?v=4', './css/app.css',
-  './js/main.js?v=4', './js/main.js',
+  './css/app.css?v=5', './css/app.css',
+  './js/main.js?v=5', './js/main.js',
   './js/util.js', './js/db.js', './js/state.js', './js/engine.js', './js/recipes.js',
   './js/photos.js', './js/ui.js', './js/actions.js', './js/backup.js', './js/backup-actions.js',
   './js/notifications.js', './js/build.js',

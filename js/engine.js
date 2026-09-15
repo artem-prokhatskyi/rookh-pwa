@@ -113,6 +113,18 @@ export function progress(h, day) {
     r.over = value > g.n; r.done = !r.over; r.pct = r.over ? 0 : 1;
     return memoSet(key, r);
   }
+  if (g.kind === 'exact') {
+    r.over = value > g.n;
+    r.pct = g.n ? Math.min(1, value / g.n) : 1;
+    r.done = value === g.n;
+    if (g.second && g.second.n) {
+      const p2 = Math.min(1, count / g.second.n);
+      r.second = { count, n: g.second.n, pct: p2, done: count >= g.second.n };
+      r.pct = Math.min(r.pct, p2);
+      r.done = r.done && r.second.done;
+    }
+    return memoSet(key, r);
+  }
   r.pct = g.n ? Math.min(1, value / g.n) : 1;
   r.done = g.n ? value >= g.n : true;
   if (g.second && g.second.n) {
@@ -214,7 +226,7 @@ export function canRetro(h, day) {
   return d <= retroDepth(h) && isScheduled(h, day);
 }
 export function yesterdayUnclosed(h) {
-  if (h.time.retro === 'none' || h.goal.kind !== 'min' || h.goal.period === 'interval') return false;
+  if (h.time.retro === 'none' || (h.goal.kind !== 'min' && h.goal.kind !== 'exact') || h.goal.period === 'interval') return false;
   if (h.archived) return false;
   const y = addDays(TODAY(), -1);
   if (!isScheduled(h, y)) return false;
@@ -324,6 +336,7 @@ export function rowState(h, now = new Date()) {
       : `${fmtDur(pr.sum)} / ${fmtDur(g.n)}${pr.period.kind !== 'day' ? ' ' + tail : ''}`;
   }
 
+  if (g.kind === 'exact' && pr.over) s.sum += ' · перевищено';
   if (h.time.window && !inWindow(h, now) && !s.done && g.period !== 'interval') {
     s.locked = true; s.control = 'locked';
     s.sum = `відкриється о ${fmtHM(h.time.window.from)}`;
@@ -349,7 +362,7 @@ export function habitSentence(h) {
   if (g.period === 'interval') goal = `Відмічати кожні ${g.intervalH} год, допуск ±${g.tolH} год, після попередньої відмітки`;
   else if (g.kind === 'none') goal = `Лише облік, без цілі, підсумок за ${g.period === 'week' ? 'тиждень' : g.period === 'month' ? 'місяць' : g.period === 'everyN' ? `${g.everyN} ${plural(g.everyN, P.den)}` : 'день'}`;
   else {
-    const head = g.kind === 'max' ? 'Не більше ніж' : 'Щонайменше';
+    const head = g.kind === 'max' ? 'Не більше ніж' : g.kind === 'exact' ? 'Рівно' : 'Щонайменше';
     const sec = g.second && g.second.n ? ` і ${g.second.n} ${plural(g.second.n, P.sesia)}` : '';
     goal = `${head} ${amount}${sec} ${per}`;
   }
@@ -396,6 +409,10 @@ export function warnings(h) {
     w.push({ t: 'Місячна ціль не встигне закритись до дати кінця.', fix: 'schedule' });
   if (h.goal.kind === 'min' && h.goal.n <= 0 && h.goal.period !== 'interval')
     w.push({ t: 'Ціль 0 — звичка вважатиметься виконаною завжди.', fix: null });
+  if (h.goal.kind === 'exact' && h.type !== 'check')
+    w.push({ t: 'Ціль «рівно» закриється лише при точному збігу суми — для кількості й часу це майже недосяжно.', fix: null });
+  if (h.goal.kind === 'exact' && h.goal.n <= 0)
+    w.push({ t: 'Рівно 0 — виконано, доки не залогуєте жодного разу. Так і задумано?', fix: null });
   return w;
 }
 export function errors(h) {

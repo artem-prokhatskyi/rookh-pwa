@@ -22,7 +22,7 @@ function goalSentenceHTML(h) {
   if (g.period === 'interval') {
     return `${chip('period', 'З інтервалом', on('period'))} <span class="w">кожні</span> ${chip('ivh', `${g.intervalH} год`, on('ivh'))}<span class="w">, допуск</span> ${chip('tol', `±${g.tolH} год`, on('tol'))}<span class="w">, після попередньої відмітки</span>`;
   }
-  const kindTxt = g.kind === 'min' ? 'Щонайменше' : g.kind === 'max' ? 'Не більше ніж' : 'Без цілі';
+  const kindTxt = g.kind === 'min' ? 'Щонайменше' : g.kind === 'max' ? 'Не більше ніж' : g.kind === 'exact' ? 'Рівно' : 'Без цілі';
   if (g.kind === 'none') return `${chip('kind', kindTxt, on('kind'))} <span class="w">, лише облік · підсумовувати</span> ${chip('period', perText(g), on('period'))}`;
   const amount = h.type === 'check' ? `${fmtN(g.n)}` : h.type === 'qty' ? fmtN(g.n) : fmtDur(g.n);
   const word = h.type === 'check' ? `<span class="w">${plural(g.n, P.raz)}</span>`
@@ -39,7 +39,7 @@ function popoverHTML(h) {
   const quick = (vals, cur, fmt = v => v, act = 'popSet') => `<div class="quick">${vals.map(v => `<button class="${v == cur ? 'on' : ''}" data-act="${act}" data-v="${v}">${fmt(v)}</button>`).join('')}</div>`;
   switch (e.pop) {
     case 'kind':
-      return `<div class="popover">${opt('min', 'Щонайменше', g.kind === 'min')}${opt('max', 'Не більше ніж', g.kind === 'max')}${opt('none', 'Без цілі — лише облік', g.kind === 'none')}${g.kind === 'max' ? '<div class="inner subhint" style="margin:0">Виконано, доки за період не більше N. Логуйте факт — інтерфейс порахує решту.</div>' : ''}</div>`;
+      return `<div class="popover">${opt('min', 'Щонайменше', g.kind === 'min')}${opt('exact', 'Рівно', g.kind === 'exact')}${opt('max', 'Не більше ніж', g.kind === 'max')}${opt('none', 'Без цілі — лише облік', g.kind === 'none')}${g.kind === 'max' ? '<div class="inner subhint" style="margin:0">Виконано, доки за період не більше N. Логуйте факт — інтерфейс порахує решту.</div>' : ''}${g.kind === 'exact' ? '<div class="inner subhint" style="margin:0">Виконано рівно на N. Більше — позначається як перевищення, і період не рахується закритим.</div>' : ''}${g.kind === 'min' ? '<div class="inner subhint" style="margin:0">Виконано від N і вище. Логувати більше можна — це не помилка.</div>' : ''}</div>`;
     case 'n': {
       const unit = h.type === 'check' ? plural(g.n, P.raz) : h.type === 'qty' ? (h.unit || 'одиниць') : 'хв';
       return `<div class="popover"><div class="inner"><div class="numin"><input type="text" inputmode="decimal" enterkeyhint="done" value="${g.n}" data-in="goalN" data-autofocus><span>${esc(unit)}</span></div>${h.type === 'check' ? quick([1, 2, 3, 5], g.n)

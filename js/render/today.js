@@ -11,9 +11,10 @@ export function controlHTML(h, st) {
   if (st.timer) return `<button class="circ play running" data-act="openTimer" data-hid="${h.id}">■</button>`;
   if (st.locked) return `<button class="circ locked" data-act="lockedTap" data-hid="${h.id}">🔒</button>`;
   if (st.control === 'interval') return `<button class="circ iv ${st.ready ? 'ready' : ''}" data-act="mark" data-hid="${h.id}">${st.ready ? '○' : '⏲'}</button>`;
+  const closable = h.goal.kind === 'min' || h.goal.kind === 'exact';
   if (st.control === 'qty') return (h.presets[0] ? `<button class="preset" data-act="preset" data-hid="${h.id}" data-v="${h.presets[0]}">+${fmtN(h.presets[0])}</button>` : '')
-    + `<button class="circ ${pr.done && h.goal.kind === 'min' ? 'filled' : ''}" data-act="openQty" data-hid="${h.id}">${pr.done && h.goal.kind === 'min' ? '✓' : ''}</button>`;
-  if (st.control === 'time') return `<button class="circ play ${pr.done && h.goal.kind === 'min' ? 'filled' : ''}" data-act="startTimer" data-hid="${h.id}">▶</button>`;
+    + `<button class="circ ${pr.done && closable ? 'filled' : ''}" data-act="openQty" data-hid="${h.id}">${pr.done && closable ? '✓' : ''}</button>`;
+  if (st.control === 'time') return `<button class="circ play ${pr.done && closable ? 'filled' : ''}" data-act="startTimer" data-hid="${h.id}">▶</button>`;
   if (h.goal.kind === 'max') return `<button class="circ max" data-act="mark" data-hid="${h.id}" style="${pr.over ? '' : 'border-style:dashed'}">${pr.value ? pr.value : ''}</button>`;
   if (h.goal.kind === 'none') return `<button class="circ" data-act="mark" data-hid="${h.id}">+</button>`;
   if (h.type === 'check' && h.goal.n > 1) return `<button class="circ ${pr.done ? 'filled' : pr.count ? 'part' : ''}" data-act="mark" data-hid="${h.id}">${pr.done ? '✓' : pr.count ? `${pr.count}/${h.goal.n}` : ''}</button>`;

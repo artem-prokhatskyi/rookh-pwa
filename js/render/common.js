@@ -34,7 +34,7 @@ export function ringStyle(pct, segments) {
   return `background:conic-gradient(var(--hc) ${Math.round(pct * 360)}deg, var(--surface-3) 0)`;
 }
 export function indicator(h, pr) {
-  const segs = h.type === 'check' && h.goal.kind === 'min' && h.goal.period !== 'interval' && h.goal.n <= 8 ? h.goal.n
+  const segs = h.type === 'check' && (h.goal.kind === 'min' || h.goal.kind === 'exact') && h.goal.period !== 'interval' && h.goal.n <= 8 ? h.goal.n
     : (h.goal.period === 'interval' ? pr.target : 0);
   const pct = h.goal.kind === 'max' ? (pr.over ? 0 : 1) : pr.pct;
   return `<div class="ind"><div class="ring" style="${ringStyle(pct, segs)}"></div><div class="core">${h.icon}</div></div>`;
@@ -101,6 +101,7 @@ export function heatTipHTML(h, day) {
       : h.goal.kind === 'max' ? `${pr.value} з ${h.goal.n}${pr.over ? ' · перевищено' : ''}`
         : `${pr.count} з ${pr.target}`;
   if (h.goal.kind === 'none') val = `${pr.count} ${plural(pr.count, P.zapys)}`;
+  if (h.goal.kind === 'exact' && pr.over) val += ' · перевищено';
   if (!c) val = isScheduled(h, day) ? val : 'поза розкладом';
   const pct = c && h.goal.kind !== 'none' ? ` · ${Math.round(pr.pct * 100)} %` : '';
   const retroOk = canRetro(h, day);

@@ -67,7 +67,7 @@ export function renderHabit(h) {
     action += `<div class="action"><div class="bignum">${val}</div><div class="pstate">${pr.count} ${plural(pr.count, P.zapys)} сьогодні</div>
     <div class="timerrow">${h.type === 'time' ? `<button class="stop" data-act="startTimer" data-hid="${h.id}" ${disabled ? 'disabled' : ''}>▶ Старт</button>` : ''}<button data-act="${h.type === 'check' ? 'markNote' : 'openQty'}" data-hid="${h.id}" ${disabled ? 'disabled' : ''}>+ Запис</button></div></div>`;
   } else if (h.type === 'check') {
-    const segs = h.goal.kind === 'min' && h.goal.n > 1 && h.goal.n <= 7
+    const segs = (h.goal.kind === 'min' || h.goal.kind === 'exact') && h.goal.n > 1 && h.goal.n <= 7
       ? `<div class="segdots">${Array.from({ length: h.goal.n }, (_, i) => `<div><span class="${i < pr.count ? 'on' : ''}"></span><small>${pr.logs[i] ? DOW_SHORT[dow(pr.logs[i].date)] : '—'}</small></div>`).join('')}</div>`
       : '';
     const label = st.locked ? `Відкриється о ${fmtHM(h.time.window.from)}` : h.goal.kind === 'max' ? 'Залогувати'
@@ -76,14 +76,14 @@ export function renderHabit(h) {
       ? `${pr.value} з ${h.goal.n} ${tail}${pr.over ? ' · перевищено' : ' · в межах'}`
       : h.goal.n === 1 && pr.period.kind === 'day'
         ? (pr.done ? `відмічено о ${fmtTime(new Date(pr.logs[pr.logs.length - 1].ts))}` : 'не відмічено')
-        : `${pr.count} з ${h.goal.n} ${tail}${pr.period.kind !== 'day' ? ` · ще ${Math.max(0, diffDays(today, pr.period.end))} ${plural(Math.max(0, diffDays(today, pr.period.end)), P.den)}` : ''}`;
+        : `${pr.count} з ${h.goal.n} ${tail}${pr.period.kind !== 'day' ? ` · ще ${Math.max(0, diffDays(today, pr.period.end))} ${plural(Math.max(0, diffDays(today, pr.period.end)), P.den)}` : ''}${h.goal.kind === 'exact' && pr.over ? ' · перевищено' : ''}`;
     action += `<div class="action"><button class="bigcirc ${st.done ? 'filled' : ''} ${st.locked ? 'dim' : ''}" data-act="mark" data-hid="${h.id}" ${disabled ? 'disabled' : ''}>${label}</button>
     <div class="pstate">${esc(state)}</div>${segs}
     ${yesterdayUnclosed(h) ? `<div class="pstate">Вчора не закрито · <button style="color:var(--accent);font-weight:700" data-act="retroQuick" data-hid="${h.id}">Закрити вчора</button></div>` : ''}</div>`;
   } else if (h.type === 'qty') {
     action += `<div class="action"><div class="bignum">${fmtN(pr.sum)}<small>/ ${fmtN(h.goal.n)} ${esc(h.unit)}</small></div>
     <div class="quick" style="justify-content:center">${h.presets.map(p => `<button data-act="preset" data-hid="${h.id}" data-v="${p}" ${disabled ? 'disabled' : ''}>+${fmtN(p)}</button>`).join('')}<button data-act="openQty" data-hid="${h.id}" ${disabled ? 'disabled' : ''}>+ …</button></div>
-    <div class="pstate">${pr.count} ${plural(pr.count, P.zapys)} сьогодні${pr.done && h.goal.kind === 'min' ? ' · ціль закрита' : ''}</div></div>`;
+    <div class="pstate">${pr.count} ${plural(pr.count, P.zapys)} сьогодні${pr.done && h.goal.kind !== 'max' ? ' · ціль закрита' : ''}${h.goal.kind === 'exact' && pr.over ? ' · перевищено' : ''}</div></div>`;
   } else {
     action += `<div class="action">${st.timer
       ? `<div class="bignum">${fmtDur(timerElapsedMin())}</div><div class="timerrow"><button data-act="openTimer" data-hid="${h.id}">Відкрити таймер</button></div>`
