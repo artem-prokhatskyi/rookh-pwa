@@ -19,12 +19,17 @@ export function applyTheme() {
   if (meta) meta.content = t === 'dark' ? '#131315' : '#F5F3EE';
 }
 
+/* усі прокручувані контейнери в порядку документа: головний екран, потім листи */
+const scrollables = root => [...root.querySelectorAll('.content, .sheet')];
+
 export function render() {
   const root = app();
   const top = ui.stack[ui.stack.length - 1];
   const key = ui.onboarding ? 'onb' + ui.onboarding : top ? top.s + (top.id || '') : ui.tab;
-  let scroll = root.querySelector('.screen > .content')?.scrollTop || 0;
-  if (key !== ui.lastKey) { scroll = 0; ui.tabMini = false; ui.lastKey = key; }
+  const changed = key !== ui.lastKey;
+  // позиції прокрутки треба зберегти до заміни розмітки
+  const prev = changed ? [] : scrollables(root).map(el => el.scrollTop);
+  if (changed) { ui.tabMini = false; ui.lastKey = key; }
   applyTheme();
 
   let html = '';
@@ -42,8 +47,15 @@ export function render() {
 
   root.innerHTML = html;
 
+  const nodes = scrollables(root);
+  const restore = () => nodes.forEach((el, i) => {
+    const v = prev[i];
+    if (v && el.isConnected && el.scrollTop !== v) el.scrollTop = v;
+  });
+  restore();
+  requestAnimationFrame(restore); // Safari іноді обрізає scrollTop до першого лейауту
   const c = root.querySelector('.screen > .content');
-  if (c) { c.scrollTop = scroll; c.dataset.lastY = String(scroll); }
+  if (c) c.dataset.lastY = String(c.scrollTop);
   if (ui.celebrate) {
     const r = root.querySelector(`.row[data-hid="${ui.celebrate}"]`);
     if (r) r.classList.add('celebrate');
