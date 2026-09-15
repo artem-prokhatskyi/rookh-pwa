@@ -4,6 +4,7 @@ import { settings, ui, habits } from '../state.js';
 import { activeLogs } from '../engine.js';
 import { topdeco, hcolor, ringStyle } from './common.js';
 import { RECIPES } from '../recipes.js';
+import { BUILD } from '../build.js';
 
 const toggleRow = (label, key) => `<button class="setrow" data-act="toggleSetting" data-key="${key}"><span class="l">${label}</span><span class="toggle ${settings[key] ? 'on' : ''}"></span></button>`;
 const selectRow = (label, key, opts) => `<div class="setrow"><span class="l">${label}</span><select data-sel="${key}">${opts.map(([v, t]) => `<option value="${v}" ${String(settings[key]) === String(v) ? 'selected' : ''}>${t}</option>`).join('')}</select></div>`;
@@ -53,7 +54,7 @@ export function renderSettings() {
   </div>
 
   <div class="sect"><span>Про додаток</span></div><div class="card">
-    <div class="setrow"><span class="l">Версія</span><span class="v">PWA-прототип 1.0</span></div>
+    <div class="setrow"><span class="l">Версія</span><span class="v">PWA-прототип 1.0 · ${BUILD}</span></div>
     <div class="setrow"><span class="l">Звичок</span><span class="v">${habits.length}</span></div>
     <div class="setrow"><span class="l">Записів</span><span class="v">${logCount}</span></div>
   </div><div class="hint">Це тестова версія для перевірки флоу. Покупок, тріалу й аналітики тут немає.</div>
