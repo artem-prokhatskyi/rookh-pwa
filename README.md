@@ -8,6 +8,11 @@ Apple Watch, системний планувальник нотифікацій)
 Дані зберігаються **лише в браузері** (IndexedDB) на тому пристрої, де ви
 відкрили додаток. Жодного сервера, акаунта чи синхронізації.
 
+## 👉 https://artem-prokhatskyi.github.io/rookh-pwa/
+
+Відкрийте в Safari на iPhone → **Поділитися → На екран «Додому»**.
+Після першого відкриття додаток працює офлайн.
+
 ---
 
 ## Як запустити на iPhone
@@ -27,17 +32,11 @@ Safari на iPhone. Далі **Поділитися → На екран «Дод
 
 ### Варіант B — для щоденного користування (рекомендовано)
 
-Потрібен HTTPS, інакше не буде офлайн-режиму. Найпростіше — GitHub Pages:
+Уже задеплоєно на GitHub Pages: **https://artem-prokhatskyi.github.io/rookh-pwa/**
 
-```bash
-cd "rookh-pwa"
-git init && git add -A && git commit -m "Rookh PWA prototype"
-gh repo create rookh-pwa --private --source=. --push
-gh api -X POST repos/:owner/rookh-pwa/pages -f "source[branch]=main" -f "source[path]=/"
-```
-
-Через хвилину сайт буде на `https://<ваш-нік>.github.io/rookh-pwa/`.
-Відкрийте в Safari → **Поділитися → На екран «Додому»**.
+Оновлення викочується автоматично після `git push` у `main` — Pages збирає
+сайт з кореня гілки. У додатку на телефоні нова версія підхопиться після
+одного-двох перезапусків (service worker оновлює кеш у фоні).
 
 > **Важливо.** Дані привʼязані до адреси сайту. Якщо спочатку користуватись за
 > `http://192.168…`, а потім перейти на GitHub Pages — історія не переїде сама.
