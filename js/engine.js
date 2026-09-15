@@ -299,7 +299,12 @@ export function rowState(h, now = new Date()) {
   const pr = progress(h, today), g = h.goal;
   const s = {
     pr, control: 'circle', locked: false, ready: true, sum: '', extra: null,
-    done: pr.done && g.kind !== 'max' && g.kind !== 'none',
+    // «закрито» у списку означає «діяти більше не треба»: для цілі «рівно»
+    // перевищення теж закриває день. Для статистики лишається строгий
+    // progress().done — перевищена ціль «рівно» не рахується виконаною.
+    done: g.kind === 'exact'
+      ? (pr.done || pr.over)
+      : (pr.done && g.kind !== 'max' && g.kind !== 'none'),
     timer: timer.hid === h.id,
   };
   const daysLeft = diffDays(today, pr.period.end);
